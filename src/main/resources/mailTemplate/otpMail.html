@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Your OTP Code</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 40px 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: radial-gradient(circle at top left, #e4f1fd, #c7e0fa, #a0c9f4);
+    }
+
+    .email-wrapper {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      padding: 20px;
+    }
+
+    .inner-table {
+      width: 100%;
+      max-width: 640px;
+      margin: 0 auto;
+      background-color: #ffffff;
+      border-radius: 18px;
+      box-shadow: 0 12px 45px rgba(0, 58, 138, 0.25);
+      overflow: hidden;
+      border: 1px solid #cce4ff;
+    }
+
+    .logo-section {
+      text-align: center;
+      padding: 36px 24px 20px;
+      background: #ffffff;
+      border-bottom: 2px solid #e0efff;
+    }
+
+    .logo {
+      max-width: 120px;
+      height: auto;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #0077cc, #0054a4);
+      color: #ffffff;
+      text-align: center;
+      padding: 32px 20px;
+      border-top: 1px solid #459de8;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 26px;
+      font-weight: 700;
+    }
+
+    .secure-text {
+      color: #cfe6ff;
+      font-size: 13px;
+      margin-top: 6px;
+    }
+
+    .content {
+      padding: 40px 50px;
+      background: #ffffff;
+    }
+
+    h2 {
+      font-size: 24px;
+      color: #003366;
+      text-align: center;
+      margin-bottom: 12px;
+    }
+
+    h3 {
+      font-size: 18px;
+      color: #333;
+      text-align: center;
+      margin-top: 0;
+      margin-bottom: 18px;
+    }
+
+    p {
+      font-size: 15px;
+      color: #555;
+      line-height: 1.6;
+      text-align: center;
+      margin: 16px 0;
+    }
+
+    .otp {
+      font-size: 46px;
+      font-weight: bold;
+      letter-spacing: 12px;
+      color: #0054a4;
+      background: #eaf4ff;
+      padding: 20px 24px;
+      margin: 32px auto;
+      width: fit-content;
+      border-radius: 12px;
+      border: 2px dashed #b1d4f9;
+      box-shadow: 0 4px 15px rgba(0, 123, 255, 0.1);
+      text-align: center;
+    }
+
+    .note {
+      font-size: 13px;
+      color: #888;
+      margin-top: 20px;
+      text-align: center;
+    }
+
+    .footer {
+      background-color: #004b99;
+      padding: 26px 20px;
+      text-align: center;
+      font-size: 13px;
+      color: #eaf0f9;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 640px) {
+      .content {
+        padding: 28px 24px;
+      }
+
+      .otp {
+        font-size: 36px;
+        letter-spacing: 8px;
+        padding: 16px 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="email-wrapper">
+    <table class="inner-table" role="presentation" cellpadding="0" cellspacing="0">
+      <tr>
+        <td class="header">
+          <h1>Smart Hospital</h1>
+          <div class="secure-text">Secure Access Verification</div>
+        </td>
+      </tr>
+      <tr>
+        <td class="content">
+          <h2>Your One-Time OTP Verification</h2>
+          <h3>Dear {{name}},</h3>
+          <p>
+            Use the code below to verify your identity. This code is valid for
+            <strong>5 minutes</strong>.
+          </p>
+          <div class="otp">{{OTP}}</div>
+          <p class="note">
+            If you didn’t request this code, please ignore this email. Your account is safe.
+          </p>
+          <p class="note">Need help? Contact our support team.</p>
+        </td>
+      </tr>
+      <tr>
+        <td class="footer">
+          © 2025 Smart Hospital. All rights reserved.<br />
+          123 Hospital Road, Ho Chi Minh City, Vietnam
+        </td>
+      </tr>
+    </table>
+  </div>
+</body>
+</html>
