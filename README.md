@@ -9,7 +9,6 @@ Before you begin, ensure you have installed:
 - **Java 21** - [Download](https://www.oracle.com/java/technologies/downloads/#java21)
 - **Maven 3.6+** - [Download](https://maven.apache.org/download.cgi)
 - **Docker & Docker Compose** - [Download](https://www.docker.com/products/docker-desktop)
-- **PostgreSQL 14+** - [Download](https://www.postgresql.org/download/) (or use Docker)
 - **Git** - [Download](https://git-scm.com/download)
 
 ## Quick Start
@@ -26,9 +25,14 @@ Create a `.env` file in the `backend` root directory with the following configur
 
 ```env
 # Database Configuration
-DB_URL=jdbc:postgresql://localhost:5432/SmartHospital_DB
-DB_USERNAME=postgres
-DB_PASSWORD=your_postgres_password
+# PostgreSQL Container Configuration
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=your_postgres_password
+POSTGRES_DB=SmartHospital_DB
+
+# PgAdmin Configuration
+PGADMIN_EMAIL=admin@local.dev
+PGADMIN_PASSWORD=your_pgadmin_password
 
 # Email Configuration (Gmail)
 MAIL_USERNAME=your_gmail@gmail.com
@@ -53,44 +57,54 @@ JWT_SECRET=your_super_secret_jwt_key_change_this_in_production
 
 ### 3. Start Services with Docker Compose
 
-Start RabbitMQ, Redis, and MinIO:
+Start all infrastructure services (RabbitMQ, Redis, MinIO, PostgreSQL, PgAdmin):
 
 ```bash
-docker-compose up -d
+docker compose -f compose.yaml up -d
 ```
 
 This will start:
 - **RabbitMQ**: Message broker (ports 5672, 15672)
 - **Redis**: Caching layer (port 6379)
 - **MinIO**: File storage (ports 9000, 9001)
+- **PostgreSQL**: Relational database (port 5432)
+- **PgAdmin**: PostgreSQL UI (port 5050)
 
 Verify services are running:
 
 ```bash
-docker-compose ps
+docker compose -f compose.yaml ps
 ```
 
-### 4. Initialize the Database
+### 4. Access PgAdmin (Database UI)
 
-Create the PostgreSQL database:
+Open PgAdmin:
+
+- URL: http://localhost:5050
+- Email: value of `PGADMIN_EMAIL` in `.env`
+- Password: value of `PGADMIN_PASSWORD` in `.env`
+
+Add your PostgreSQL server in PgAdmin:
+
+- Host name/address: `postgres`
+- Port: `5432`
+- Maintenance database: value of `POSTGRES_DB` (example: `SmartHospital_DB`)
+- Username: value of `POSTGRES_USER`
+- Password: value of `POSTGRES_PASSWORD`
+
+### 5. Database Initialization
+
+The file `init-db.sql` is mounted to PostgreSQL at startup and is executed automatically on first initialization of the PostgreSQL data volume.
+
+If you need to re-run `init-db.sql`, reset only the PostgreSQL volume:
 
 ```bash
-# Using PostgreSQL CLI
-psql -U postgres
-
-# In PostgreSQL prompt
-CREATE DATABASE "SmartHospital_DB";
-\q
+docker compose -f compose.yaml down
+docker volume rm backend_postgres_data
+docker compose -f compose.yaml up -d postgres
 ```
 
-Or if using Docker for PostgreSQL:
-
-```bash
-docker run --name postgres -e POSTGRES_PASSWORD=your_postgres_password \
-  -p 5432:5432 -d postgres:14
-```
-
-### 5. Build the Application
+### 6. Build the Application
 
 ```bash
 # Using Maven wrapper (recommended)
@@ -100,7 +114,7 @@ docker run --name postgres -e POSTGRES_PASSWORD=your_postgres_password \
 mvn clean package
 ```
 
-### 6. Run the Application
+### 7. Run the Application
 
 ```bash
 # Using Maven wrapper
@@ -125,6 +139,8 @@ Once the application is running, access the Swagger UI documentation:
 |---------|-----|---------|
 | Backend API | http://localhost:8080 | Main application |
 | RabbitMQ Management | http://localhost:15672 | Message broker UI |
+| PostgreSQL | localhost:5432 | Database service |
+| PgAdmin | http://localhost:5050 | PostgreSQL UI |
 | Redis | localhost:6379 | Caching service |
 | MinIO Console | http://localhost:9001 | File storage UI |
 | Swagger UI | http://localhost:8080/swagger-ui.html | API documentation |
@@ -182,11 +198,18 @@ Ensure PostgreSQL is running and credentials in `.env` are correct:
 psql -U postgres -h localhost -d SmartHospital_DB
 ```
 
+### PgAdmin Login Error
+If PgAdmin says username/password is incorrect even after updating `.env`, reset only PgAdmin state:
+```bash
+docker compose -f compose.yaml rm -sf pgadmin
+docker volume rm backend_pgadmin_data
+docker compose -f compose.yaml up -d pgadmin
+```
+
 ### Docker Services Won't Start
 Remove conflicting containers:
 ```bash
-docker-compose down
-docker-compose up -d
+docker compose -f compose.yaml up -d --remove-orphans
 ```
 
 ### Redis Connection Issues
@@ -229,6 +252,11 @@ Access MinIO console: http://localhost:9001
 | `DB_URL` | PostgreSQL connection URL | `jdbc:postgresql://localhost:5432/SmartHospital_DB` |
 | `DB_USERNAME` | Database username | `postgres` |
 | `DB_PASSWORD` | Database password | `secure_password` |
+| `POSTGRES_USER` | PostgreSQL container user | `postgres` |
+| `POSTGRES_PASSWORD` | PostgreSQL container password | `secure_password` |
+| `POSTGRES_DB` | PostgreSQL default database | `SmartHospital_DB` |
+| `PGADMIN_EMAIL` | PgAdmin login email | `admin@local.dev` |
+| `PGADMIN_PASSWORD` | PgAdmin login password | `secure_password` |
 | `MAIL_USERNAME` | Gmail address | `your_email@gmail.com` |
 | `MAIL_PASSWORD` | Gmail app password | `xxxx xxxx xxxx xxxx` |
 | `FRONTEND_URL` | Frontend application URL | `http://localhost:3000` |
