@@ -2,7 +2,6 @@ package com.example.SmartHospital.config;
 
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.ClientConfiguration;
 import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
@@ -29,15 +28,10 @@ public class MinioConfig {
     public AmazonS3 s3Client() {
         BasicAWSCredentials credentials = new BasicAWSCredentials(accessKey, secretKey);
         
-        ClientConfiguration clientConfig = new ClientConfiguration();
-        clientConfig.setSignerOverride("AWSS3V4SignerType"); // Force S3 V4 Signatures
-
         return AmazonS3ClientBuilder.standard()
                 .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(url, region != null && !region.isBlank() ? region : "ap-northeast-2"))
                 .withPathStyleAccessEnabled(true) // Required for Supabase S3 Compatibility!
-                .withClientConfiguration(clientConfig)
                 .withCredentials(new AWSStaticCredentialsProvider(credentials))
-                .disableChunkedEncoding() // Required for Supabase file uploads!
                 .build();
     }
 }
