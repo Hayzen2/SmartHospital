@@ -32,10 +32,11 @@ public class MinioConfig {
         ClientConfiguration clientConfig = new ClientConfiguration();
         clientConfig.setSignerOverride("AWSS3V4SignerType"); 
 
-        // Strip trailing slash from URL if present to prevent signature path mismatches
+        // Strip trailing slash
         String sanitizedUrl = url.endsWith("/") ? url.substring(0, url.length() - 1) : url;
 
-        // Failsafe: Log the region to ensure it's not silently defaulting to the wrong one
+        // Fallback region: ONLY use ap-northeast-2 if that is truly where your Supabase project lives.
+        // Otherwise, replace "ap-northeast-2" with your actual Supabase region (e.g., "us-east-1").
         String resolvedRegion = (region != null && !region.isBlank()) ? region : "ap-northeast-2";
 
         return AmazonS3ClientBuilder.standard()
@@ -44,7 +45,6 @@ public class MinioConfig {
                 .withClientConfiguration(clientConfig)
                 .withCredentials(new AWSStaticCredentialsProvider(credentials))
                 .disableChunkedEncoding() 
-                .withPayloadSigningEnabled(false) 
                 .build();
     }
 }
