@@ -25,9 +25,15 @@ spring:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      ssl:
+        enabled: ${REDIS_SSL:false}
       timeout: 60000
       lettuce:
         shutdown-timeout: 100
+        
+  rabbitmq:
+    url: ${RABBITMQ_URL:amqp://localhost:5672}
         
   mail:
     host: ${MAIL_HOST:smtp.gmail.com}
@@ -61,6 +67,7 @@ minio:
   url: ${MINIO_URL}
   accessKey: ${MINIO_USER}
   secretKey: ${MINIO_PASSWORD}
+  region: ${MINIO_REGION:}
   bucket: avatars
   presigned-expiry-seconds: ${MINIO_PRESIGNED_EXPIRY_SECONDS:3600}
 

@@ -5,19 +5,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
+import java.util.Date;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import io.minio.GetPresignedObjectUrlArgs;
-import io.minio.ListObjectsArgs;
-import io.minio.MinioClient;
-import io.minio.PutObjectArgs;
-import io.minio.RemoveObjectArgs;
-import io.minio.Result;
-import io.minio.http.Method;
-import io.minio.messages.Item;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.ObjectListing;
+import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.amazonaws.services.s3.model.S3ObjectSummary;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -25,7 +23,7 @@ import lombok.RequiredArgsConstructor;
 public class MinioStorageService {
     // UUID for generating unique file names, and sanitization to prevent issues with special characters in filenames
 
-    private final MinioClient minioClient;
+    private final AmazonS3 s3Client;
 
     @Value("${minio.bucket:avatars}")
     private String avatarBucket;
@@ -93,14 +91,11 @@ public class MinioStorageService {
             : presignedExpirySeconds;
 
         try {
-            return minioClient.getPresignedObjectUrl(
-                GetPresignedObjectUrlArgs.builder()
-                    .method(Method.GET)
-                    .bucket(parts[0])
-                    .object(parts[1])
-                    .expiry(expiry)
-                    .build()
-            );
+            Date expiration = new Date();
+            long expTimeMillis = expiration.getTime();
+            expTimeMillis += 1000L * expiry;
+            expiration.setTime(expTimeMillis);
+            return s3Client.generatePresignedUrl(parts[0], parts[1], expiration).toString();
         } catch (Exception e) {
             throw new MinioUploadException("Failed to generate presigned URL", e);
         }
@@ -166,12 +161,7 @@ public class MinioStorageService {
                 String[] parts = filePath.split("/", 2);
                 if (parts.length == 2) {
                     try {
-                        minioClient.removeObject(
-                            RemoveObjectArgs.builder()
-                                .bucket(parts[0])
-                                .object(parts[1])
-                                .build()
-                        );
+                        s3Client.deleteObject(parts[0], parts[1]);
                     } catch (Exception e) {
                         throw new MinioUploadException("Failed to delete file from MinIO", e);
                     }
@@ -182,14 +172,10 @@ public class MinioStorageService {
 
     private void uploadFile(String bucket, String objectName, MultipartFile file, String contentType) {
         try (InputStream inputStream = file.getInputStream()) {
-            minioClient.putObject(
-                PutObjectArgs.builder()
-                    .bucket(bucket)
-                    .object(objectName)
-                    .stream(inputStream, file.getSize(), -1)
-                    .contentType(contentType)
-                    .build()
-            );
+            ObjectMetadata metadata = new ObjectMetadata();
+            metadata.setContentLength(file.getSize());
+            metadata.setContentType(contentType);
+            s3Client.putObject(new PutObjectRequest(bucket, objectName, inputStream, metadata));
         } catch (Exception e) {
             throw new MinioUploadException("Failed to upload file to MinIO", e);
         }
@@ -198,24 +184,10 @@ public class MinioStorageService {
     private void cleanupOldAvatarVariants(String userId, String keepObjectName) {
         String avatarPrefix = userId + "/avatar.";
         try {
-            Iterable<Result<Item>> results = minioClient.listObjects(
-                ListObjectsArgs.builder()
-                    .bucket(avatarBucket)
-                    .prefix(avatarPrefix)
-                    .recursive(true)
-                    .build()
-            );
-
-            for (Result<Item> result : results) {
-                Item item = result.get();
-                String objectName = item.objectName();
-                if (!keepObjectName.equals(objectName)) {
-                    minioClient.removeObject(
-                        RemoveObjectArgs.builder()
-                            .bucket(avatarBucket)
-                            .object(objectName)
-                            .build()
-                    );
+            ObjectListing listing = s3Client.listObjects(avatarBucket, avatarPrefix);
+            for (S3ObjectSummary summary : listing.getObjectSummaries()) {
+                if (!keepObjectName.equals(summary.getKey())) {
+                    s3Client.deleteObject(avatarBucket, summary.getKey());
                 }
             }
         } catch (Exception e) {

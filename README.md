@@ -55,6 +55,8 @@ RABBITMQ_MANAGEMENT_PORT=15672
 # Redis
 REDIS_HOST=localhost
 REDIS_PORT=6379
+REDIS_PASSWORD=
+REDIS_SSL=false
 
 # MinIO
 MINIO_USER=minio
@@ -62,6 +64,7 @@ MINIO_PASSWORD=your_minio_password
 MINIO_PORT=9000
 MINIO_MANAGEMENT_PORT=9001
 MINIO_URL=http://localhost:9000
+MINIO_REGION=
 
 # JWT
 JWT_SECRET=your_long_random_base64_or_hex_secret
