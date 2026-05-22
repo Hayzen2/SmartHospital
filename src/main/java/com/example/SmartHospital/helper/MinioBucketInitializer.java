@@ -22,9 +22,8 @@ public class MinioBucketInitializer {
             createBucketIfNotExists("medicalrecord-attachments");
             createBucketIfNotExists("chat-files");
         } catch (Exception e) {
-            // Log the error and rethrow as a runtime exception to prevent application from starting
-            System.err.println("Error initializing S3 buckets: " + e.getMessage());
-            throw new RuntimeException("Failed to initialize S3 buckets", e);
+            // Log the error but allow the application to start
+            System.err.println("Warning: Failed to initialize S3 buckets. Uploads may fail. Error: " + e.getMessage());
         }
     }
 

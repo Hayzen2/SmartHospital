@@ -97,7 +97,8 @@ public class MinioStorageService {
             expiration.setTime(expTimeMillis);
             return s3Client.generatePresignedUrl(parts[0], parts[1], expiration).toString();
         } catch (Exception e) {
-            throw new MinioUploadException("Failed to generate presigned URL", e);
+            System.err.println("Warning: Failed to generate presigned URL for " + storedPath + ": " + e.getMessage());
+            return storedPath; // Fallback to raw path so the page doesn't crash
         }
     }
 
@@ -163,7 +164,7 @@ public class MinioStorageService {
                     try {
                         s3Client.deleteObject(parts[0], parts[1]);
                     } catch (Exception e) {
-                        throw new MinioUploadException("Failed to delete file from MinIO", e);
+                        System.err.println("Warning: Failed to delete file " + filePath + " from storage: " + e.getMessage());
                     }
                 }
             }
@@ -177,7 +178,8 @@ public class MinioStorageService {
             metadata.setContentType(contentType);
             s3Client.putObject(new PutObjectRequest(bucket, objectName, inputStream, metadata));
         } catch (Exception e) {
-            throw new MinioUploadException("Failed to upload file to MinIO", e);
+            System.err.println("Error: Failed to upload file to storage: " + e.getMessage());
+            throw new MinioUploadException("Failed to upload file to storage", e);
         }
     }
 
@@ -191,7 +193,8 @@ public class MinioStorageService {
                 }
             }
         } catch (Exception e) {
-            throw new MinioUploadException("Failed to clean up old avatar files", e);
+            // Log the warning instead of crashing the entire profile update request!
+            System.err.println("Warning: Failed to clean up old avatar files: " + e.getMessage());
         }
     }
 
