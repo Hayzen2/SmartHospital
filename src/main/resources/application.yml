@@ -48,7 +48,7 @@ spring:
             enable: true
             required: true
           ssl:
-            trust: smtp.gmail.com 
+            trust: ${MAIL_HOST:smtp.gmail.com}
   datasource:
     url: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}?sslmode=require
     username: ${POSTGRES_USER}
