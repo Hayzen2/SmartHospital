@@ -172,11 +172,14 @@ public class MinioStorageService {
     }
 
     private void uploadFile(String bucket, String objectName, MultipartFile file, String contentType) {
-        try (InputStream inputStream = file.getInputStream()) {
+        try {
+            byte[] bytes = file.getBytes();
             ObjectMetadata metadata = new ObjectMetadata();
-            metadata.setContentLength(file.getSize());
+            metadata.setContentLength(bytes.length);
             metadata.setContentType(contentType);
-            s3Client.putObject(new PutObjectRequest(bucket, objectName, inputStream, metadata));
+            try (InputStream inputStream = new java.io.ByteArrayInputStream(bytes)) {
+                s3Client.putObject(new PutObjectRequest(bucket, objectName, inputStream, metadata));
+            }
         } catch (Exception e) {
             System.err.println("Error: Failed to upload file to storage: " + e.getMessage());
             throw new MinioUploadException("Failed to upload file to storage", e);
