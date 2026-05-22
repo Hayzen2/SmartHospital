@@ -130,7 +130,7 @@ public class AuthController {
             "refreshToken=" + refreshToken      
             + "; HttpOnly"                       // JS cannot access this cookie (prevents XSS)
             + "; Secure"                         // Cookie is sent ONLY over HTTPS
-            + "; SameSite=Strict"                // Prevents CSRF (cookie not sent cross-site)
+            + "; SameSite=None"                  // Allows cross-site cookie usage
             + "; Max-Age=" + refreshTokenExpiration / 1000; // Cookie lifetime (seconds)
 
             response.setHeader("Set-Cookie", cookieValue);
@@ -185,7 +185,7 @@ public class AuthController {
                 "refreshToken=" + refreshToken
                 + "; HttpOnly"
                 + "; Secure"
-                + "; SameSite=Strict"
+                + "; SameSite=None"
                 + "; Max-Age=" + refreshTokenExpiration / 1000;
             response.setHeader("Set-Cookie", cookieValue);
             forgotPasswordService.consumeLoginToken(loginToken);
@@ -255,7 +255,7 @@ public class AuthController {
             "refreshToken=" + refreshToken      
             + "; HttpOnly"                       // JS cannot access this cookie (prevents XSS)
             + "; Secure"                         // Cookie is sent ONLY over HTTPS
-            + "; SameSite=Strict"                // Prevents CSRF (cookie not sent cross-site)
+            + "; SameSite=None"                  // Allows cross-site cookie usage
             + "; Max-Age=" + refreshTokenExpiration / 1000; // Cookie lifetime (seconds)
             response.setHeader("Set-Cookie", cookieValue);
 
@@ -294,7 +294,7 @@ public class AuthController {
             String jti = claims.getId();
             redisTokenService.deleteRefreshToken(email, jti);
             // delete httpOnly cookie so that browser will stop sending it (logout)
-            response.setHeader("Set-Cookie", "refreshToken=deleted; HttpOnly; Secure; SameSite=Strict; Max-Age=0");
+            response.setHeader("Set-Cookie", "refreshToken=deleted; HttpOnly; Secure; SameSite=None; Max-Age=0");
             return ResponseEntity.status(HttpStatus.OK)
             .body(new ApiResponse<>(200, "Logout successful", null));
         } catch (JwtException e) {
@@ -360,7 +360,7 @@ public class AuthController {
                 "refreshToken=" + newRefreshToken      
                 + "; HttpOnly"                       // JS cannot access this cookie (prevents XSS)
                 + "; Secure"                         // Cookie is sent ONLY over HTTPS
-                + "; SameSite=Strict"                // Prevents CSRF (cookie not sent cross-site)
+                + "; SameSite=None"                  // Allows cross-site cookie usage
                 + "; Max-Age=" + refreshTokenExpiration / 1000; // Cookie lifetime (seconds)
             response.setHeader("Set-Cookie", cookieValue);
 
