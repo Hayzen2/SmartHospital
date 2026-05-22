@@ -33,7 +33,7 @@ spring:
         shutdown-timeout: 100
         
   rabbitmq:
-    url: ${RABBITMQ_URL:amqp://localhost:5672}
+    addresses: ${RABBITMQ_URL:amqp://localhost:5672}
         
   mail:
     host: ${MAIL_HOST:smtp.gmail.com}
