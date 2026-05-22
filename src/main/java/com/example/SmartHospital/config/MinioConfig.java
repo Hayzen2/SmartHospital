@@ -38,6 +38,7 @@ public class MinioConfig {
                 .withClientConfiguration(clientConfig)
                 .withCredentials(new AWSStaticCredentialsProvider(credentials))
                 .disableChunkedEncoding() // Required for Supabase file uploads!
+                .withPayloadSigningEnabled(false) // Bypass payload hashing mismatches!
                 .build();
     }
 }
