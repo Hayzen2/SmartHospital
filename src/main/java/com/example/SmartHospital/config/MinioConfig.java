@@ -28,20 +28,24 @@ public class MinioConfig {
 
     @Bean
     public AmazonS3 s3Client() {
-        BasicAWSCredentials credentials = new BasicAWSCredentials(accessKey, secretKey);
+        // Trim credentials to prevent hidden whitespace issues
+        String cleanAccessKey = accessKey != null ? accessKey.trim() : "";
+        String cleanSecretKey = secretKey != null ? secretKey.trim() : "";
+
+        BasicAWSCredentials credentials = new BasicAWSCredentials(cleanAccessKey, cleanSecretKey);
         
         ClientConfiguration clientConfig = new ClientConfiguration();
-        clientConfig.setSignerOverride("AWSS3V4SignerType"); 
 
         // Strip trailing slash
-        String sanitizedUrl = url.endsWith("/") ? url.substring(0, url.length() - 1) : url;
+        String sanitizedUrl = (url != null && url.endsWith("/")) ? url.substring(0, url.length() - 1) : url;
+        String cleanUrl = sanitizedUrl != null ? sanitizedUrl.trim() : "";
 
         // Fallback region: ONLY use ap-northeast-2 if that is truly where your Supabase project lives.
         // Otherwise, replace "ap-northeast-2" with your actual Supabase region (e.g., "us-east-1").
-        String resolvedRegion = (region != null && !region.isBlank()) ? region : "ap-northeast-2";
+        String resolvedRegion = (region != null && !region.isBlank()) ? region.trim() : "ap-northeast-2";
 
         return AmazonS3ClientBuilder.standard()
-                .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(sanitizedUrl, resolvedRegion))
+                .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(cleanUrl, resolvedRegion))
                 .withPathStyleAccessEnabled(true) 
                 .withClientConfiguration(clientConfig)
                 .withCredentials(new AWSStaticCredentialsProvider(credentials))
