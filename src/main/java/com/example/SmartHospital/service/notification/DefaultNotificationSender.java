@@ -41,7 +41,7 @@ public class DefaultNotificationSender implements INotificationSender {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, false, "UTF-8");
             if (fromEmail != null && !fromEmail.isBlank()) {
-                helper.setFrom(fromEmail);
+                helper.setFrom(fromEmail, "SmartHospital");
             }
             helper.setTo(toEmail);
             helper.setSubject("[SmartHospital] Appointment " + payload.getEventType());
@@ -54,7 +54,7 @@ public class DefaultNotificationSender implements INotificationSender {
             );
             helper.setText(content, false);
             mailSender.send(message);
-        } catch (MessagingException ex) {
+        } catch (MessagingException | java.io.UnsupportedEncodingException ex) {
             log.warn("Failed to send appointment email to {}: {}", toEmail, ex.getMessage());
         }
     }

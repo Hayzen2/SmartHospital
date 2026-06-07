@@ -2,10 +2,10 @@ package com.example.SmartHospital.service.storage;
 
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
-import java.util.Date;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -16,6 +16,7 @@ import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
+
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -25,7 +26,7 @@ public class MinioStorageService {
 
     private final AmazonS3 s3Client;
 
-    @Value("${minio.bucket:avatars}")
+    @Value("${minio.avatar-bucket:avatars}")
     private String avatarBucket;
 
     @Value("${minio.medical-record-bucket:medicalrecord-attachments}")

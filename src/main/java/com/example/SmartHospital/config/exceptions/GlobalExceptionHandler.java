@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.MultipartException;
 
+import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.example.SmartHospital.dtos.AuthDtos.Response.ApiResponse;
 //restControllerAdvice combines @ControllerAdvice and @ResponseBody
 // It allows you to handle exceptions across the whole application in one 
@@ -82,6 +83,12 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
             .body(new ApiResponse<>(403, "Access denied", null));
         }
+        
+    @ExceptionHandler(AmazonS3Exception.class)
+    public ResponseEntity<ApiResponse<Object>> handleAmazonS3Exception(AmazonS3Exception ex) {
+        return ResponseEntity.status(ex.getStatusCode())
+                .body(new ApiResponse<>(ex.getStatusCode(), "Storage error: " + ex.getErrorMessage(), null));
+    }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Object>> handleUnexpected(Exception ex) {

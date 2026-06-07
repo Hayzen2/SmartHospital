@@ -69,7 +69,10 @@ minio:
   accessKey: ${MINIO_USER}
   secretKey: ${MINIO_PASSWORD}
   region: ${MINIO_REGION:}
-  bucket: avatars
+  avatar-bucket: avatars
+  medical-record-bucket: medicalrecord-attachments
+  chat-file-bucket: chat-files
+  additional-file-bucket: request-attachments
   presigned-expiry-seconds: ${MINIO_PRESIGNED_EXPIRY_SECONDS:3600}
 
 gemini:

@@ -45,7 +45,6 @@ public class MinioConfig {
                 .withPathStyleAccessEnabled(true) 
                 .withClientConfiguration(clientConfig)
                 .withCredentials(new AWSStaticCredentialsProvider(credentials))
-                .withPathStyleAccessEnabled(true) // Ensure path-style access is enabled for Minio
                 .disableChunkedEncoding() 
                 .build();
     }
