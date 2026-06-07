@@ -1,5 +1,6 @@
 package com.example.SmartHospital.service.storage;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Date;
@@ -175,10 +176,11 @@ public class MinioStorageService {
 
     private void uploadFile(String bucket, String objectName, MultipartFile file, String contentType) {
         try {
+            byte[] bytes = file.getBytes(); // Read to memory so AWS SDK can compute SHA-256 for the V4 signature without stream consumption issues
             ObjectMetadata metadata = new ObjectMetadata();
-            metadata.setContentLength(file.getSize());
+            metadata.setContentLength(bytes.length);
             metadata.setContentType(contentType);
-            try (InputStream inputStream = file.getInputStream()) {
+            try (InputStream inputStream = new ByteArrayInputStream(bytes)) {
                 s3Client.putObject(new PutObjectRequest(bucket, objectName, inputStream, metadata));
             }
         } catch (Exception e) {

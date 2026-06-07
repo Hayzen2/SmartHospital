@@ -28,9 +28,9 @@ public class MinioConfig {
 
     @Bean
     public AmazonS3 s3Client() {
-        // Trim credentials to prevent hidden whitespace issues
-        String cleanAccessKey = accessKey != null ? accessKey.trim() : "";
-        String cleanSecretKey = secretKey != null ? secretKey.trim() : "";
+        // Trim and remove hidden quotes (extremely common when using Render Environment Variables)
+        String cleanAccessKey = accessKey != null ? accessKey.trim().replace("\"", "").replace("'", "") : "";
+        String cleanSecretKey = secretKey != null ? secretKey.trim().replace("\"", "").replace("'", "") : "";
 
         BasicAWSCredentials credentials = new BasicAWSCredentials(cleanAccessKey, cleanSecretKey);
         
