@@ -21,7 +21,7 @@ public class DefaultNotificationSender implements INotificationSender {
     private final WebSocketMessagingService webSocketMessagingService;
     private final ObjectProvider<JavaMailSender> mailSenderProvider;
 
-    @Value("${spring.mail.username:}")
+    @Value("${spring.mail.from:baongocngo2211@gmail.com}")
     private String fromEmail;
 
     // This method sends appointment notifications via WebSocket

@@ -43,8 +43,8 @@ public class ForgotPasswordService {
     private final PasswordEncoder passwordEncoder;
     private final RabbitTemplate rabbitTemplate;
 
-    @Value("${spring.mail.username}")
-    private String emailHost;
+    @Value("${spring.mail.from:baongocngo2211@gmail.com}")
+    private String fromEmail;
     
 
     @Async
@@ -76,7 +76,7 @@ public class ForgotPasswordService {
             MimeMessage mimeMessage = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED, "utf-8");
 
-            helper.setFrom(emailHost, "SmartHospital Support");
+            helper.setFrom(fromEmail, "SmartHospital Support");
             helper.setTo(message.getEmail());
             helper.setSubject("[SmartHospital] Your " + ("login".equalsIgnoreCase(message.getPurpose()) ? "login verification" : "password reset") + " OTP");
             String htmlContent = getHTMLContent(message.getOtp(), message.getFullName());
