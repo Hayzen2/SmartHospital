@@ -94,7 +94,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MinioUploadException.class)
     public ResponseEntity<ApiResponse<Object>> handleMinioUploadException(MinioUploadException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(new ApiResponse<>(400, ex.getMessage() + " (Check if the bucket exists and permissions are correct)", null));
+                .body(new ApiResponse<>(400, ex.getMessage(), null));
     }
 
     @ExceptionHandler(Exception.class)

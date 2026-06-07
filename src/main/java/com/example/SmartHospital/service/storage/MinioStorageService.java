@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
@@ -181,8 +182,12 @@ public class MinioStorageService {
                 s3Client.putObject(new PutObjectRequest(bucket, objectName, inputStream, metadata));
             }
         } catch (Exception e) {
-            System.err.println("Error: Failed to upload file to storage: " + e.getMessage());
-            throw new MinioUploadException("Failed to upload file to storage", e);
+            String rootCause = e.getMessage();
+            if (e instanceof AmazonS3Exception) {
+                rootCause = ((AmazonS3Exception) e).getErrorMessage();
+            }
+            System.err.println("Error: Failed to upload file to storage: " + rootCause);
+            throw new MinioUploadException("Failed to upload file to storage: " + rootCause, e);
         }
     }
 
