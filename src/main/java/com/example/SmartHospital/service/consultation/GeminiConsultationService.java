@@ -2,6 +2,9 @@ package com.example.SmartHospital.service.consultation;
 
 import java.net.URI;
 import java.net.URLEncoder;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.List;
@@ -11,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import com.example.SmartHospital.config.exceptions.BadRequestException;
 import com.example.SmartHospital.dtos.ConsultationDtos.ConsultationExtractResponse;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -22,7 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class GeminiConsultationService {
 
-    /** Local mapper: Spring Boot 4 may not expose an {@link ObjectMapper} bean by default. */
+    // ObjectMapper is thread-safe after configuration, so we can reuse a single instance for better performance
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     private static final String GEMINI_GENERATE_PATH =
@@ -89,14 +93,19 @@ public class GeminiConsultationService {
     @Value("${gemini.api-key:}")
     private String apiKey;
 
-    private final java.net.http.HttpClient httpClient = java.net.http.HttpClient.newBuilder()
+    // Reuse the same HttpClient for better performance
+    private final HttpClient httpClient = HttpClient.newBuilder()
         .connectTimeout(Duration.ofSeconds(30))
         .build();
 
-    private JsonNode responseSchemaNode() throws com.fasterxml.jackson.core.JsonProcessingException {
+    // Parses the hardcoded JSON schema into a JsonNode
+    // This is done once per analyze() call to ensure any changes to the schema are picked up 
+    // without needing to restart the service
+    private JsonNode responseSchemaNode() throws JsonProcessingException {
         return objectMapper.readTree(RESPONSE_SCHEMA_JSON);
     }
 
+    // Main method to analyze raw symptom description and extract structured data
     public ConsultationExtractResponse analyze(String rawText) {
         String trimmed = rawText == null ? "" : rawText.trim();
         if (trimmed.isEmpty()) {
@@ -107,24 +116,38 @@ public class GeminiConsultationService {
         }
 
         try {
+            
+            // Prepare the request payload according to Gemini's expected format
             JsonNode schema = responseSchemaNode();
+            // Construct the request payload according to Gemini's expected format
             ObjectNode root = objectMapper.createObjectNode();
 
+            // System instruction with the detailed prompt and schema
             ObjectNode systemInstruction = objectMapper.createObjectNode();
+            // The "parts" array allows for more complex instructions with multiple components
             ArrayNode sysParts = objectMapper.createArrayNode();
+            // We put the entire prompt in a single part
             sysParts.add(objectMapper.createObjectNode().put("text", SYSTEM_PROMPT));
             systemInstruction.set("parts", sysParts);
             root.set("systemInstruction", systemInstruction);
 
+            // The "contents" array represents the conversation history; we start with the user's input as the first turn
             ArrayNode contents = objectMapper.createArrayNode();
+            // Each turn in the conversation is an object with a "role" (user/assistant/system) and "parts" (the actual messages)
             ObjectNode userTurn = objectMapper.createObjectNode();
+            // The "role" field indicates who is speaking; in this case, it's the user providing the symptom description
             userTurn.put("role", "user");
             ArrayNode userParts = objectMapper.createArrayNode();
+            // Each part can contain text, images, or other media; here we just have one part with the user's raw text input
             userParts.add(objectMapper.createObjectNode().put("text", trimmed));
+            // We could add more parts if we wanted to provide additional context or information from the user
             userTurn.set("parts", userParts);
+            // Add the user's turn to the contents array, which represents the conversation history sent to Gemini
             contents.add(userTurn);
             root.set("contents", contents);
 
+            // The "generationConfig" field allows us to specify how we want Gemini to generate its response
+            // including the schema it should follow
             ObjectNode generationConfig = objectMapper.createObjectNode();
             generationConfig.put("responseMimeType", "application/json");
             generationConfig.set("responseSchema", schema);
@@ -134,15 +157,15 @@ public class GeminiConsultationService {
             String query = URLEncoder.encode(apiKey, StandardCharsets.UTF_8);
             URI uri = URI.create("https://" + GEMINI_HOST + GEMINI_GENERATE_PATH + "?key=" + query);
 
-            java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
+            HttpRequest request = HttpRequest.newBuilder()
                 .uri(uri)
                 .timeout(Duration.ofMinutes(2))
                 .header("Content-Type", "application/json")
-                .POST(java.net.http.HttpRequest.BodyPublishers.ofString(payload, StandardCharsets.UTF_8))
+                .POST(HttpRequest.BodyPublishers.ofString(payload, StandardCharsets.UTF_8))
                 .build();
 
-            java.net.http.HttpResponse<String> response =
-                httpClient.send(request, java.net.http.HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+            HttpResponse<String> response =
+                httpClient.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
 
             if (response.statusCode() != 200) {
                 JsonNode errBody = objectMapper.readTree(response.body());
@@ -151,6 +174,7 @@ public class GeminiConsultationService {
             }
 
             JsonNode body = objectMapper.readTree(response.body());
+            // The generated content is nested in a complex structure; we navigate through it to find the "text" part of the first candidate response
             JsonNode textNode = body.path("candidates").path(0).path("content").path("parts").path(0).path("text");
             String text = textNode.isMissingNode() || textNode.isNull() ? null : textNode.asText();
             if (text == null || text.isBlank()) {
@@ -167,6 +191,7 @@ public class GeminiConsultationService {
         }
     }
 
+    // Normalizes null lists to empty and ensures raw_text is present for better downstream handling 
     private ConsultationExtractResponse normalize(ConsultationExtractResponse r, String fallbackRaw) {
         if (r.getMain_symptoms() == null) {
             r.setMain_symptoms(List.of());

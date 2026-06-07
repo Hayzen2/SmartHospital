@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.HeadBucketRequest;
+
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 
@@ -23,7 +24,7 @@ public class MinioBucketInitializer {
             createBucketIfNotExists("chat-files");
         } catch (Exception e) {
             // Log the error but allow the application to start
-            System.err.println("Warning: Failed to initialize S3 buckets. Uploads may fail. Error: " + e.getMessage());
+            System.err.println("Warning: Could not verify/create S3 buckets automatically. If using Supabase, you must create them manually in the dashboard.");
         }
     }
 
@@ -35,7 +36,7 @@ public class MinioBucketInitializer {
                 try {
                     s3Client.createBucket(bucketName);
                 } catch (Exception ex) {
-                    System.err.println("Note: Bucket creation skipped or failed: " + ex.getMessage());
+                    System.err.println("Note: Bucket creation skipped or failed for '" + bucketName + "'. (Expected if using Supabase).");
                 }
             } else {
                 throw e;

@@ -35,6 +35,8 @@ public class MinioConfig {
         BasicAWSCredentials credentials = new BasicAWSCredentials(cleanAccessKey, cleanSecretKey);
         
         ClientConfiguration clientConfig = new ClientConfiguration();
+        // Supabase's S3-compatible storage requires AWS Signature Version 4, so we explicitly set the signer to ensure compatibility
+        clientConfig.setSignerOverride("AWSS3V4SignerType");
 
         // Strip trailing slash
         String sanitizedUrl = (url != null && url.endsWith("/")) ? url.substring(0, url.length() - 1) : url;

@@ -13,6 +13,7 @@ import org.springframework.web.multipart.MultipartException;
 
 import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.example.SmartHospital.dtos.AuthDtos.Response.ApiResponse;
+import com.example.SmartHospital.service.storage.MinioStorageService.MinioUploadException;
 //restControllerAdvice combines @ControllerAdvice and @ResponseBody
 // It allows you to handle exceptions across the whole application in one 
 // global handling component, and the responses will be automatically serialized to JSON
@@ -88,6 +89,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Object>> handleAmazonS3Exception(AmazonS3Exception ex) {
         return ResponseEntity.status(ex.getStatusCode())
                 .body(new ApiResponse<>(ex.getStatusCode(), "Storage error: " + ex.getErrorMessage(), null));
+    }
+
+    @ExceptionHandler(MinioUploadException.class)
+    public ResponseEntity<ApiResponse<Object>> handleMinioUploadException(MinioUploadException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new ApiResponse<>(400, ex.getMessage() + " (Check if the bucket exists and permissions are correct)", null));
     }
 
     @ExceptionHandler(Exception.class)
