@@ -188,7 +188,7 @@ public class ChatController {
         }
 
         try {
-            List<String> uploadedPaths = minioStorageService.uploadAdditionalFiles(files, userId);
+            List<String> uploadedPaths = minioStorageService.uploadChatFiles(files, userId);
             return ResponseEntity.status(HttpStatus.CREATED)
                 .body(new ApiResponse<>(201, "Files uploaded successfully", uploadedPaths));
         } catch (Exception e) {

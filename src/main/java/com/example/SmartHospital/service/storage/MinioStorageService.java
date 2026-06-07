@@ -59,6 +59,19 @@ public class MinioStorageService {
         return chatFileBucket + "/" + objectName;
     }
 
+    public List<String> uploadChatFiles(List<MultipartFile> chatFiles, String userId) {
+        List<String> uploadedPaths = new ArrayList<>();
+        if (chatFiles == null || chatFiles.isEmpty()) {
+            return uploadedPaths;
+        }
+        for (MultipartFile file : chatFiles) {
+            if (file != null && !file.isEmpty()) {
+                uploadedPaths.add(uploadChatFile(file, userId));
+            }
+        }
+        return uploadedPaths;
+    }
+
     // ex: url name: "avatars/userId/avatar.png"
     public String uploadAvatar(MultipartFile avatarFile, String userId) {
         if (avatarFile == null || avatarFile.isEmpty()) {
