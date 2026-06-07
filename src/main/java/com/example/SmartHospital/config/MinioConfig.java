@@ -41,7 +41,7 @@ public class MinioConfig {
         String cleanUrl = sanitizedUrl != null ? sanitizedUrl.trim() : "";
 
         // Fallback region: ONLY use ap-northeast-2 if that is truly where your Supabase project lives.
-        // Otherwise, replace "ap-northeast-2" with your actual Supabase region (e.g., "us-east-1").
+        // Otherwise, replace "ap-northeast-2" with your actual Supabase region
         String resolvedRegion = (region != null && !region.isBlank()) ? region.trim() : "ap-northeast-2";
 
         return AmazonS3ClientBuilder.standard()

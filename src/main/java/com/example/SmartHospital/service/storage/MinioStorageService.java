@@ -174,11 +174,10 @@ public class MinioStorageService {
 
     private void uploadFile(String bucket, String objectName, MultipartFile file, String contentType) {
         try {
-            byte[] bytes = file.getBytes();
             ObjectMetadata metadata = new ObjectMetadata();
-            metadata.setContentLength(bytes.length);
+            metadata.setContentLength(file.getSize());
             metadata.setContentType(contentType);
-            try (InputStream inputStream = new java.io.ByteArrayInputStream(bytes)) {
+            try (InputStream inputStream = file.getInputStream()) {
                 s3Client.putObject(new PutObjectRequest(bucket, objectName, inputStream, metadata));
             }
         } catch (Exception e) {
